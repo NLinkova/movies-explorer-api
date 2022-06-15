@@ -8,20 +8,16 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.createUser = (req, res, next) => {
   const {
-    name, about, avatar, email, password,
+    email, password, name,
   } = req.body;
 
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
+      email, password: hash, name,
     }))
     .then(({ _id }) => User.findById(_id))
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(200).send({ data: user }))
     .catch((e) => {
       if (e.code === 11000) {
         const err = new ErrorConflict(
@@ -53,30 +49,15 @@ module.exports.getCurrentUser = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Запрашиваемый пользователь не найден');
     })
-    .then((user) => res.send(user))
-    .catch(next);
-};
-
-module.exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => next(err));
-};
-
-module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .orFail(() => {
-      throw new ErrorNotFound('Запрашиваемый пользователь не найден');
-    })
-    .then((user) => res.send(user))
+    .then((user) => res.status(200).send(user))
     .catch(next);
 };
 
 module.exports.updateUser = (req, res, next) => {
-  const { name, about } = req.body;
+  const { email, name } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
-    { name, about },
+    { email, name },
     {
       new: true,
       runValidators: true,
@@ -85,23 +66,6 @@ module.exports.updateUser = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
-    .then((user) => res.send(user))
-    .catch(next);
-};
-
-module.exports.updateUserAvatar = (req, res, next) => {
-  const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
-    })
-    .then((user) => res.send(user))
+    .then((user) => res.status(200).send(user))
     .catch(next);
 };

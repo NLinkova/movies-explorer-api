@@ -2,8 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 require('dotenv').config();
-const helmet = require('helmet');
-const cors = require('cors');
+// const helmet = require('helmet');
+// const cors = require('cors');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/userController');
 const auth = require('./middlewares/auth');
@@ -20,7 +20,7 @@ const app = express();
 // подключаемся к серверу mongo
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect('mongodb://localhost:27017/mestodb', {
+    const conn = await mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -32,20 +32,20 @@ const connectDB = async () => {
 };
 connectDB();
 
-// CORS middleware
-const CORS_CONFIG = {
-  origin: [
-    'https://linkova.mesto.back.nomoredomains.xyz',
-    'http://linkova.mesto.back.nomoredomains.xyz',
-    'https://linkova.mesto.front.nomoredomains.xyz',
-    'http://linkova.mesto.front.nomoredomains.xyz',
-    'https://localhost:3000',
-    'http://localhost:3000',
-  ],
-};
-app.options('*', cors(CORS_CONFIG));
-app.use(cors(CORS_CONFIG));
-app.use(helmet());
+// // CORS middleware
+// const CORS_CONFIG = {
+//   origin: [
+//     'https://linkova.mesto.back.nomoredomains.xyz',
+//     'http://linkova.mesto.back.nomoredomains.xyz',
+//     'https://linkova.mesto.front.nomoredomains.xyz',
+//     'http://linkova.mesto.front.nomoredomains.xyz',
+//     'https://localhost:3000',
+//     'http://localhost:3000',
+//   ],
+// };
+// app.options('*', cors(CORS_CONFIG));
+// app.use(cors(CORS_CONFIG));
+// app.use(helmet());
 
 app.use(bodyParser.json()); // для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true })); // для приёма веб-страниц внутри POST-запроса
@@ -60,13 +60,13 @@ app.get('/crash-test', () => {
 });
 
 // routes
-app.post('/signin', userValidator, login);
 app.post('/signup', userValidator, createUser);
+app.post('/signin', userValidator, login);
 
 app.use(auth);
 
 app.use('/users', require('./routes/userRoutes'));
-app.use('/cards', require('./routes/cardRoutes'));
+app.use('/movies', require('./routes/movieRoutes'));
 
 app.use('*', (req, res, next) => {
   next(new ErrorNotFound('Ресурс по указанному адресу не найден'));
