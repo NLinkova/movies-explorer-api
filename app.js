@@ -1,16 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
-// const helmet = require('helmet');
-// const cors = require('cors');
+const helmet = require('helmet');
+
 const { errors } = require('celebrate');
-const { login, createUser } = require('./controllers/userController');
-const auth = require('./middlewares/auth');
-const errorHandler = require('./middlewares/errorHandler');
-const { userValidator } = require('./middlewares/userValidator');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const ErrorNotFound = require('./errors/ErrorNotFound');
+const { CORS_CONFIG } = require('./helpers/cors-options');
+const errorHandler = require('./middlewares/errorHandler');
+const router = require('./routes/index');
+
+const limiter = require('./helpers/limiter');
+
+const { DATA_BASE, NODE_ENV } = process.env;
 
 // Слушаем 3000
 const { PORT = 3000 } = process.env;
@@ -18,59 +21,24 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 // подключаемся к серверу mongo
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (err) {
-    console.log(`Error: ${err.message}`);
-    process.exit(1);
-  }
-};
-connectDB();
+mongoose.connect(NODE_ENV === 'production' ? DATA_BASE : 'mongodb://localhost:27017/moviesdb', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// // CORS middleware
-// const CORS_CONFIG = {
-//   origin: [
-//     'https://linkova.mesto.back.nomoredomains.xyz',
-//     'http://linkova.mesto.back.nomoredomains.xyz',
-//     'https://linkova.mesto.front.nomoredomains.xyz',
-//     'http://linkova.mesto.front.nomoredomains.xyz',
-//     'https://localhost:3000',
-//     'http://localhost:3000',
-//   ],
-// };
-// app.options('*', cors(CORS_CONFIG));
-// app.use(cors(CORS_CONFIG));
+app.options('*', cors(CORS_CONFIG));
+app.use(cors(CORS_CONFIG));
 // app.use(helmet());
 
 app.use(bodyParser.json()); // для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true })); // для приёма веб-страниц внутри POST-запроса
-
 app.use(requestLogger);
+app.use(helmet());
 
-// crash test
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
+// Apply the rate limiting middleware to API calls only
+app.use(limiter);
 
-// routes
-app.post('/signup', userValidator, createUser);
-app.post('/signin', userValidator, login);
-
-app.use(auth);
-
-app.use('/users', require('./routes/userRoutes'));
-app.use('/movies', require('./routes/movieRoutes'));
-
-app.use('*', (req, res, next) => {
-  next(new ErrorNotFound('Ресурс по указанному адресу не найден'));
-});
+app.use(router);
 
 app.use(errorLogger);
 app.use(errors());

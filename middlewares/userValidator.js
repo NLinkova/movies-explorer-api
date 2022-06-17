@@ -8,6 +8,13 @@ const userValidator = celebrate({
   }),
 });
 
+const userLoginValidator = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+});
+
 const userUpdateValidator = celebrate({
   body: Joi.object().keys({
     email: Joi.string().email().required(),
@@ -18,4 +25,5 @@ const userUpdateValidator = celebrate({
 module.exports = {
   userValidator,
   userUpdateValidator,
+  userLoginValidator,
 };

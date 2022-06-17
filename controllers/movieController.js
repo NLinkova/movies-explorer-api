@@ -36,7 +36,7 @@ module.exports.getMovies = (req, res, next) => {
 module.exports.deleteMovie = (req, res, next) => {
   const { movieId } = req.params;
   const userId = req.user._id;
-  Movie.findById({ _id: movieId })
+  Movie.findByIdmovieId
     .orFail(() => {
       throw new ErrorNotFound('Такой фильма не существует');
     })
@@ -44,7 +44,7 @@ module.exports.deleteMovie = (req, res, next) => {
       if (movie.owner.toString() !== userId) {
         throw new ErrorForbidden('Вы не можете удалять чужие фильмы');
       }
-      return Movie.findByIdAndRemove(movie._id);
+      return Movie.findByIdAndRemove(movieId);
     })
     .then((movie) => {
       res.status(200).send({ message: 'Успешно удален фильм:', data: movie });
