@@ -38,7 +38,7 @@ module.exports.deleteMovie = (req, res, next) => {
   const userId = req.user._id;
   Movie.findById({ _id: movieId })
     .orFail(() => {
-      throw new ErrorNotFound('Такой фильма не существует');
+      throw new ErrorNotFound('Такого фильма не существует');
     })
     .then((movie) => {
       if (movie.owner.toString() !== userId) {
