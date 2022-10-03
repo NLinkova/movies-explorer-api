@@ -24,6 +24,3 @@ Endpoints:
 - POST /signin
 
 ---
-
-- [Link](https://linkova.movie.front.nomoredomains.xyz) to the frontend;
-- Backend requests at [address](https://linkova.movie.back.nomoredomains.xyz);
